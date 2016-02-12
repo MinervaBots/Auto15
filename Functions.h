@@ -14,11 +14,11 @@ void initRobot()
    UART1_Init(9600);
    Delay_ms(100);
    ADC_Init();
-   
 
 
 
- 
+
+
 /*
   pinMode(LEFT_SENSOR,INPUT);
   pinMode(CENTRAL_SENSOR,INPUT);
@@ -30,7 +30,7 @@ void initRobot()
 
   pinMode(POWER_BUTTON,INPUT);
   pinMode(REMOTE_CONTROL_PIN,INPUT);
-  
+
   pinMode(RIGHT_MOTOR,OUTPUT);
   pinMode(LEFT_MOTOR,OUTPUT);
 
@@ -39,16 +39,16 @@ void initRobot()
   pinMode(SWITCH_1_PIN, INPUT);
   pinMode(SWITCH_2_PIN, INPUT);
   pinMode(SWITCH_3_PIN, INPUT);
-  
+
   pinMode(LED_DEBUG, OUTPUT);
   */
-  
+
   // Ensure when the arduino is on, it will provide +-2,5V to stop motors
   analogWrite(RIGHT_MOTOR, STOP_PWM_RIGHT);
   analogWrite(LEFT_MOTOR, STOP_PWM_LEFT);
 
   //irrecv.enableIRIn();
-  
+
 }
 
 /********** BEGINNING **********/
@@ -56,11 +56,11 @@ void initialDelay (unsigned int deadline){
   int timeFlag = false;
   unsigned long int initialTime = millis();
   LED_DEBUG= 1;
-  
+
   while (!timeFlag)
   {
-    readOpponentSensors();  
-    
+    readOpponentSensors();
+
     if (millis() - initialTime >= deadline)
       timeFlag = true;
   }
@@ -70,7 +70,7 @@ void initialDelay (unsigned int deadline){
 
 void analiseSwitches()
 {
-  
+
   if (SWITCH_1_PIN == 0)
   {
     strategy[0] = RIGHT;
@@ -81,15 +81,15 @@ void analiseSwitches()
     strategy[0] = LEFT; // button pressed down = LEFT
     //error = 1;
   }
-  
+
   if (SWITCH_2_PIN== 0)
   {
     strategy[1] = REGULAR_TURN;
   }
   else
   {
-    strategy[1] = BLIND_TURN; 
-  }  
+    strategy[1] = BLIND_TURN;
+  }
 
   if (SWITCH_3_PIN == 0)
   {
@@ -99,7 +99,7 @@ void analiseSwitches()
   {
     strategy[2] = WAIT_ENEMY;
   }
-  
+
   #if (ANALISE_SWITCHES_PRINT)
 
       printSwitches();
@@ -117,7 +117,7 @@ void analiseSwitches()
       else
         UART1_Write_text( "SOMETHING" );
   #endif
-     
+
 }
 
 void printSwitches()
@@ -139,7 +139,7 @@ void waitStartButton()
   #if (IREMOTE_PRINT)
     UART1_Write_Text( "Remote control code to start: 0xFF02FD" );
   #endif
-    
+
   while(1)
   {
     if (POWER_BUTTON)
@@ -150,16 +150,16 @@ void waitStartButton()
       #endif
       break;
     }
-    if (irrecv.decode(&results)) 
+    if (irrecv.decode(&results))
     {
-      #if (IREMOTE_PRINT)  
+      #if (IREMOTE_PRINT)
         UART1_Write_Text(results.value, HEX);
-      #endif  
-      
+      #endif
+
       if (results.value == 0xFF02FD)
       {
         irrecv.resume(); // Receive the next value
-        break;  
+        break;
       }
       irrecv.resume(); // Receive the next value
     }
@@ -170,45 +170,45 @@ int blindTurn()
 {
   if(strategy[0] == RIGHT)
   {
-   controlMotors(30,100); //35, 100    
+   controlMotors(30,100); //35, 100
    delay(670);
-   
+
    while( !(opponentSensorsReadings[1] || opponentSensorsReadings[2] || opponentSensorsReadings[3] ) )
    {
     controlMotors(-100, 100);
     readOpponentSensors();
     checkStopMotor();
    }
-   
+
   }
   if(strategy[0] == LEFT)
   {
    controlMotors(100, 50);
    delay(650);
-   
+
    while( !(opponentSensorsReadings[1] || opponentSensorsReadings[2] || opponentSensorsReadings[3] ) )
    {
     controlMotors(100, -100);
     readOpponentSensors();
     checkStopMotor();
-   }   
+   }
   }
 }
 
 int seekEnemy(int LastSide)
 {
-  
+
  while(!sensorsOn){
    timeTurn = 0;
-   initialTimeTurn = 0;  
+   initialTimeTurn = 0;
    if (LastSide == RIGHT)
    {
-    
+
     initialTimeTurn= millis();
-    readOpponentSensors(); 
+    readOpponentSensors();
      while(1)
      {
-      timeTurn= millis(); 
+      timeTurn= millis();
       readOpponentSensors();
       controlMotors(-100, 100);
       if(sensorsOn){
@@ -218,11 +218,11 @@ int seekEnemy(int LastSide)
         break;
       }
      }
-     
-     initialTimeTurn= millis(); 
+
+     initialTimeTurn= millis();
      while(1)
      {
-      timeTurn= millis(); 
+      timeTurn= millis();
       readOpponentSensors();
       controlMotors(100, -100);
       if(sensorsOn){
@@ -233,15 +233,15 @@ int seekEnemy(int LastSide)
       }
      }
    }
-  
-   if (LastSide == LEFT) 
+
+   if (LastSide == LEFT)
    {
-    
+
     initialTimeTurn= millis();
-    readOpponentSensors(); 
+    readOpponentSensors();
      while(1)
      {
-      timeTurn= millis(); 
+      timeTurn= millis();
       readOpponentSensors();
       controlMotors(100, -100);
       if(sensorsOn){
@@ -251,11 +251,11 @@ int seekEnemy(int LastSide)
         break;
       }
      }
-     
-     initialTimeTurn= millis(); 
+
+     initialTimeTurn= millis();
      while(1)
      {
-      timeTurn= millis(); 
+      timeTurn= millis();
       readOpponentSensors();
       controlMotors(-100, 100);
       if(sensorsOn){
@@ -267,13 +267,13 @@ int seekEnemy(int LastSide)
      }
    }
  }
- return ENEMY_FOUND;   
+ return ENEMY_FOUND;
 }
 void initialTurn()
 {
   timeTurn = 0;
   initialTimeTurn = 0;
-  
+
   if(strategy[1])
     blindTurn();
   else
@@ -284,12 +284,12 @@ void initialTurn()
     controlMotors(100, -100);
    /*if (strategy[0] == RIGHT)
    {
-    
+
     initialTimeTurn = millis();
-    readOpponentSensors(); 
+    readOpponentSensors();
      while(1)
      {
-      timeTurn= millis(); 
+      timeTurn= millis();
       readOpponentSensors();
       controlMotors(-100, 100);
       if(sensorsOn){
@@ -299,11 +299,11 @@ void initialTurn()
         break;
       }
      }
-     
-     initialTimeTurn= millis(); 
+
+     initialTimeTurn= millis();
      while(1)
      {
-      timeTurn= millis(); 
+      timeTurn= millis();
       readOpponentSensors();
       controlMotors(100, -100);
       if(sensorsOn){
@@ -314,14 +314,14 @@ void initialTurn()
       }
      }
    }
-  
-   if (strategy[0] == LEFT) 
+
+   if (strategy[0] == LEFT)
    {
     initialTimeTurn= millis();
-    readOpponentSensors(); 
+    readOpponentSensors();
      while(1)
      {
-      timeTurn= millis(); 
+      timeTurn= millis();
       readOpponentSensors();
       controlMotors(100, -100);
       if(sensorsOn){
@@ -331,11 +331,11 @@ void initialTurn()
         break;
       }
      }
-     
-     initialTimeTurn= millis(); 
+
+     initialTimeTurn= millis();
      while(1)
      {
-      timeTurn= millis(); 
+      timeTurn= millis();
       readOpponentSensors();
       controlMotors(-100, 100);
       if(sensorsOn){
@@ -372,19 +372,19 @@ void controlMotors(double leftPower, double rightPower)
 
   if (rightPower > 100) rightPower = 100;
   if (rightPower < -100) rightPower = -100;
-  
+
   if (leftPower >= 0)
-    analogWrite(LEFT_MOTOR, (STOP_PWM_LEFT + (LEFT_MOTOR_RISE_PWM_RATE * leftPower)));  
+    analogWrite(LEFT_MOTOR, (STOP_PWM_LEFT + (LEFT_MOTOR_RISE_PWM_RATE * leftPower)));
   else
-    analogWrite(LEFT_MOTOR, (STOP_PWM_LEFT + (LEFT_MOTOR_DOWN_PWM_RATE * leftPower)));  
-  
+    analogWrite(LEFT_MOTOR, (STOP_PWM_LEFT + (LEFT_MOTOR_DOWN_PWM_RATE * leftPower)));
+
   if (rightPower > 0)
     analogWrite(RIGHT_MOTOR, STOP_PWM_RIGHT + RIGHT_MOTOR_RISE_PWM_RATE * rightPower);
   else
-    analogWrite(RIGHT_MOTOR, STOP_PWM_RIGHT + RIGHT_MOTOR_DOWN_PWM_RATE * rightPower);  
-  
-  
-  
+    analogWrite(RIGHT_MOTOR, STOP_PWM_RIGHT + RIGHT_MOTOR_DOWN_PWM_RATE * rightPower);
+
+
+
   #if (CONTROL_MOTORS_PRINT)
     UART1_Write();
     UART1_Write_text( "Left PWM: " );
@@ -402,7 +402,7 @@ void controlMotors(double leftPower, double rightPower)
       UART1_Write( STOP_PWM_RIGHT + RIGHT_MOTOR_DOWN_PWM_RATE * rightPower);
 
   #endif
-  
+
 }
 
 int star()
@@ -414,15 +414,15 @@ int star()
   sensorsOn = 0;
   if( sensorsOn != 0 )
     return ENEMY_FOUND;
-  
+
   //Serial.println("star");
   edgeControl = verifyEdgeSensors();
-  
+
   if(edgeControl != INSIDE_ARENA)
     {
      //Serial.println("borda encontrada");
      starRotationTime = millis();
-     
+
      do{
       Serial.print("curva");
         readOpponentSensors();
@@ -437,29 +437,29 @@ int star()
 }
 
 void checkStopMotor()
-{ 
+{
   if(POWER_BUTTON == 1)
   {
     while(1)
     {
       controlMotors( 0, 0);
-      digitalWrite(LED_DEBUG, HIGH);
+      LED_DEBUG = 1;
       delay(500);
-      digitalWrite(LED_DEBUG, LOW);
-      delay(500);      
+      LED_DEBUG = 0;
+      delay(500);
       irrecv.resume();
       UART1_Write_Text("DEBUG: MOTORS STOPPED!");
       UART1_Write(13);
-      
+
     }
   }
 
-  if (irrecv.decode(&results)) 
+  if (irrecv.decode(&results))
   {
-    #if (IREMOTE_PRINT)  
+    #if (IREMOTE_PRINT)
       Serial.println(results.value, HEX);
-    #endif  
-    
+    #endif
+
     if (results.value == 0xFF4AB5)
     {
       irrecv.resume(); // Receive the next value
@@ -473,7 +473,7 @@ void checkStopMotor()
         irrecv.resume();
         UART1_Write_Text("DEBUG: MOTORS STOPPED!");
         UART1_Write(13);
-      }  
+      }
     }
     irrecv.resume(); // Receive the next value
   }
@@ -507,21 +507,21 @@ void setConstants( float proportional, float integrative, float derivative)
 }
 
 float rotate()
-{        
+{
   float power = 0;
   sensorsOn = 0;
-          
+
   readOpponentSensors();
 
   if( sensorsOn == 0 )
     {
       int starControl = 0;
-    
+
       #if(FOLLOW_FUNCTION_PRINT)
-          
+
         UART1_Write_Text( "Nenhum sensor esta vendo" );
         UART1_Write(13);
-      
+
       #endif
     }
   else
@@ -533,7 +533,7 @@ float rotate()
     {
       error += SENSOR_WEIGHTS[i] * opponentSensorsReadings[i];
     }
-  
+
     error = error/sensorsOn;
     power = PIDControlerRUN(error);
 
@@ -549,7 +549,7 @@ float rotate()
       UART1_Write_Text("sensorsOn : ");
       UART1_Write(sensorsOn);
       UART1_Write(13);
-     
+
     #endif
 
 //saturate power
@@ -560,23 +560,23 @@ float rotate()
      }
     else if (error < 0)
      {
-      controlMotors(- abs(power),abs(power)); 
+      controlMotors(- abs(power),abs(power));
      }
     else if (error == 0)
      {
       controlMotors(0,0);
       integral = 0;
      }
-  
+
   }
-  return error;        
+  return error;
 }
 
 int follow()
-{        
+{
   float power = 0;
   sensorsOn = 0;
-          
+
   readOpponentSensors();
 
   if( sensorsOn == 0 )
@@ -588,11 +588,11 @@ int follow()
       controlMotors( -100, 100 );
      if (error == 0)
       controlMotors( 100, 100 ); */
-      
+
       #if(FOLLOW_FUNCTION_PRINT)
-          
+
         UART1_Write_Text( "Nenhum sensor esta vendo" );
-      
+
       #endif
         // turn(70 * error / abs(error) );
       return ENEMY_NOT_FOUND;
@@ -608,7 +608,7 @@ int follow()
     {
      error += SENSOR_WEIGHTS[i] * opponentSensorsReadings[i];
     }
-  
+
     error = error/sensorsOn;
     power = PIDControlerRUN(error);
 
@@ -631,16 +631,16 @@ int follow()
      }
     else if (error < 0)
      {
-      controlMotors(100 - abs(power),100); 
+      controlMotors(100 - abs(power),100);
      }
     else if (error == 0)
      {
       controlMotors(100,100);
       integral = 0;
      }
-  
+
   }
-  return ENEMY_FOUND;        
+  return ENEMY_FOUND;
 }
 
 /********** SENSORS **********/
@@ -653,7 +653,7 @@ int readOpponentSensors()
       opponentSensorsReadings[i] = digitalRead(SENSORS_MAP[i]);
       sensorsOn += opponentSensorsReadings[i];
     }
-    //if reading nothing keep last reading and return 
+    //if reading nothing keep last reading and return
     // if(!(readings[0] || readings[1] || readings[2] || readings[3] || readings[4]))
     //   return READINGS_UNCHANGED;
 
@@ -667,7 +667,7 @@ int readOpponentSensors()
 }
 
 void printOpponentSensors()
-{  
+{
   UART1_Write(13);
   UART1_Write(opponentSensorsReadings[0]);
   UART1_Write_text("\t");
@@ -686,7 +686,7 @@ RETURN readEdgeSensors()
 {
   rightEdgeSensorValue = ALPHA * ADC_Read(BORDER_SENSOR_RIGHT) + (1-ALPHA) * rightEdgeSensorValue;
   leftEdgeSensorValue = ALPHA * ADC_Read(BORDER_SENSOR_LEFT) + (1-ALPHA) * leftEdgeSensorValue;
-  
+
   if(leftEdgeSensorValue < LEFT_EDGE_SENSOR_THRESHOLD)
     leftEdge = true;
   else
@@ -718,7 +718,7 @@ int verifyEdgeSensors()
     Delay_ms(100);
     controlMotors(-100, -100);
     Delay_ms(BACKWARD_TURN_TIME);
-    
+
     rotationTime = millis();
     do
     {
@@ -727,32 +727,32 @@ int verifyEdgeSensors()
         {
           return ENEMY_FOUND;
         }
-        controlMotors(-100,100);  
+        controlMotors(-100,100);
     }
     while(millis() - rotationTime < RIGHT_ROTATE_TIME);
-     
+
     return RIGHT_EDGE_DETECTED;
    }
 
   if(leftEdge)
-   { 
+   {
     controlMotors(0 ,0);
     Delay_ms(100);
     controlMotors(-100, -100);
     Delay_ms(BACKWARD_TURN_TIME);
-    
+
     rotationTime = millis();
     do{
         readOpponentSensors();
         if(sensorsOn != 0)
         {
           return ENEMY_FOUND;
-        }  
-        
+        }
+
         controlMotors(100,-100);
-        
+
      }while(millis() - rotationTime < LEFT_ROTATE_TIME);
-     
+
     return LEFT_EDGE_DETECTED;
    }
 }
@@ -772,10 +772,10 @@ void printEdgeLuminosityValues()
 {
   UART1_Write_text(13);
   UART1_Write_text("Left Edge Analog :");
-  UART1_Write(analogRead(BORDER_SENSOR_LEFT));
+  UART1_Write(ADC_Read(BORDER_SENSOR_LEFT));
   UART1_Write_text("\t");
   UART1_Write_text("Right Edge Analog:");
-  UART1_Write(analogRead(BORDER_SENSOR_RIGHT));
+  UART1_Write(ADC_Read(BORDER_SENSOR_RIGHT));
   UART1_Write_text(13);
 }
 
@@ -786,7 +786,7 @@ void printEdgeLuminosityValues()
     controlMotors( 80, 80 );
     verifyEdgeSensors();
     follow();
-    
+
   }
 }
 /*
@@ -802,11 +802,11 @@ void initialRotation()
       {
         return ENEMY_FOUND;
       }
-      controlMotors(-100 * direcao,100 * direcao);  
+      controlMotors(-100 * direcao,100 * direcao);
     }
     while(millis() - rotationTime < RIGHT_ROTATE_TIME);
     direcao *= -1;
-  }  
+  }
 }
 */
 */
