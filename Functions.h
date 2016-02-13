@@ -14,6 +14,8 @@ void initRobot()
    UART1_Init(9600);
    Delay_ms(100);
    ADC_Init();
+   SPIx_Init();
+   
 
 
 
@@ -44,8 +46,8 @@ void initRobot()
   */
 
   // Ensure when the arduino is on, it will provide +-2,5V to stop motors
-  analogWrite(RIGHT_MOTOR, STOP_PWM_RIGHT);
-  analogWrite(LEFT_MOTOR, STOP_PWM_LEFT);
+  SPI_Write(RIGHT_MOTOR, STOP_PWM_RIGHT);
+  SPI_Write(LEFT_MOTOR, STOP_PWM_LEFT);
 
   //irrecv.enableIRIn();
 
@@ -374,14 +376,14 @@ void controlMotors(double leftPower, double rightPower)
   if (rightPower < -100) rightPower = -100;
 
   if (leftPower >= 0)
-    analogWrite(LEFT_MOTOR, (STOP_PWM_LEFT + (LEFT_MOTOR_RISE_PWM_RATE * leftPower)));
+    SPI_Write(LEFT_MOTOR, (STOP_PWM_LEFT + (LEFT_MOTOR_RISE_PWM_RATE * leftPower)));
   else
-    analogWrite(LEFT_MOTOR, (STOP_PWM_LEFT + (LEFT_MOTOR_DOWN_PWM_RATE * leftPower)));
+    SPI_Write(LEFT_MOTOR, (STOP_PWM_LEFT + (LEFT_MOTOR_DOWN_PWM_RATE * leftPower)));
 
   if (rightPower > 0)
-    analogWrite(RIGHT_MOTOR, STOP_PWM_RIGHT + RIGHT_MOTOR_RISE_PWM_RATE * rightPower);
+    SPI_Write(RIGHT_MOTOR, STOP_PWM_RIGHT + RIGHT_MOTOR_RISE_PWM_RATE * rightPower);
   else
-    analogWrite(RIGHT_MOTOR, STOP_PWM_RIGHT + RIGHT_MOTOR_DOWN_PWM_RATE * rightPower);
+    SPI_Write(RIGHT_MOTOR, STOP_PWM_RIGHT + RIGHT_MOTOR_DOWN_PWM_RATE * rightPower);
 
 
 
